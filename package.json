@@ -1,0 +1,27 @@
+{
+  "name": "docrester",
+  "version": "1.0.0",
+  "description": "Utility converting between postman and swagger",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo TODO"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jesusr/docrester.git"
+  },
+  "keywords": [],
+  "author": "Jesús R Peinado jesusrpeinado@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jesusr/docrester/issues"
+  },
+  "homepage": "https://github.com/jesusr/docrester#readme",
+  "dependencies": {
+    "yargs": "^15.0.2"
+  },
+  "devDependencies": {
+    "eslint": "^6.7.2"
+  }
+}
