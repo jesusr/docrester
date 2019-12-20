@@ -1,6 +1,6 @@
 {
   "name": "docrester",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Utility converting between postman and swagger",
   "main": "index.js",
   "scripts": {
