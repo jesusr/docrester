@@ -52,6 +52,7 @@ function recursive(elem, t) {
 }
 
 async function docrester(opt) {
+  console.log(opt);
   const file = JSON.parse(fs.readFileSync(opt._[0], 'utf8'));
   recursive(file, []);
   const main = {
