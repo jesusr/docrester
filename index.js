@@ -21,14 +21,15 @@ function genParams(elem) {
       in: s[1],
       required: true,
       type: matchType(h.type),
+      default: h.value || '',
       description: h.description || 'TODO'
     }));
   }).reduce((a, b) => a.concat(b), []);
 }
 
-function genPath(elem, t) {
+function genPath(elem, t, opt) {
   if (!elem.request) return;
-  const pathName = `/${elem.request.url.raw.split('/').slice(1).join('/').split('?')[0]}`;
+  const pathName = `${elem.request.url.raw.split('?')[0].replace(opt.domain, '')}`;
   if (!paths[pathName]) paths[pathName] = {};
   const path = {
     description: elem.request.description || 'TODO',
@@ -42,50 +43,54 @@ function genPath(elem, t) {
   paths[pathName][elem.request.method.toLowerCase()] = path;
 }
 
-function recursive(elem, t) {
+function recursive(elem, t, opt) {
   if (elem.item && Array.isArray(elem.item))
     for (let i = 0; i < elem.item.length; i++) {
       if (elem.name && tags.indexOf(elem.name) < 0) tags.push(elem.name);
-      recursive(elem.item[i], [...t, elem.name].filter(f => !!f));
+      recursive(elem.item[i], [...t, elem.name].filter(f => !!f), opt);
     }
-  else if (elem.request) genPath(elem, t);
+  else if (elem.request) genPath(elem, t, opt);
+}
+
+function getEnvironmentData(envPath) {
+  return envPath ? JSON.parse(fs.readFileSync(envPath, 'utf8')).values.filter(v => !!v.enabled) : null;
 }
 
 async function docrester(opt) {
-  console.log(opt);
-  const file = JSON.parse(fs.readFileSync(opt._[0], 'utf8'));
-  recursive(file, []);
+  if (opt.c) return console.info('Jesús R Peinado https://github.com/jesusr');
+  if (opt.v) return console.info(require('./package.json').version);
+  const env = getEnvironmentData(opt.e);
+  let file = fs.readFileSync(opt._[0], 'utf8');
+  if (env) env.map(e => (file = file.replace(new RegExp(`{{${e.key}}}`, 'g'), e.value)));
+  file = JSON.parse(file);
+  recursive(file, [], opt);
   const main = {
     info: {
       version: opt.version || '1.0.0',
       title: file.info.name,
-      description: 'TODO: Add Description',
+      description: 'Created by Docrester https://www.npmjs.com/package/docrester',
       contact: opt.contact || ''
     },
     host: opt.domain || 'example.com',
     basePath: opt.base || '/',
-    securityDefinitions: {
-      auth: {
-        type: 'basic'
-      }
-    },
+    securityDefinitions: { auth: { type: 'basic' } },
     schemes: opt.scheme || ['http', 'https'],
-    swagger: '2.0',
-    consumes,
-    produces,
-    tags,
-    paths
+    swagger: '2.0', consumes, produces, tags, paths
   };
   fs.writeFileSync(`${__dirname}/${opt.o}`, JSON.stringify(main, null, 4), { encoding: 'utf8' });
-  console.log(`Swagger JSON stored at ${__dirname}/${opt.o}`);
+  console.info(`Swagger JSON stored at ${__dirname}/${opt.o}`);
 }
 
 function parseArguments() {
   return yargs
-    .option('output', { description: 'file output', alias: 'o', type: 'string' })
-    .option('format', { description: 'json or yaml', alias: 'f', type: 'string' })
-    .option('version', { description: 'version of the document', alias: 'vv', type: 'string' })
-    .option('contact', { description: 'contact info', alias: 'c', type: 'string' })
+    .usage('Usage: $0 ./docrester [options] <input_file>')
+    .example('docrester -o ./swagger.json -e ./test_environment.json ./test.json', 'Creates a swagger json based in the test.json file including the test_environment variables.')
+    .option('output', { description: 'path for the output file', alias: 'o', type: 'string' })
+    .option('domain', { description: 'url for host domain ', alias: 'd', type: 'string' })
+    .option('base', { description: 'base path ', alias: 'b', type: 'string' })
+    .option('version', { description: 'version of the document', alias: 'vv', type: 'boolean' })
+    .option('contact', { description: 'contact info', alias: 'c', type: 'boolean' })
+    .default('o', 'swagger.json').demandCommand(1)
     .help().alias('help', 'h').argv;
 }
 
