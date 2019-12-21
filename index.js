@@ -1,5 +1,6 @@
 const fs = require('fs'),
   yargs = require('yargs'),
+  chalk = require('chalk'),
   defaultStatus = {
     produces: ['application/json'],
     consumes: ['application/json']
@@ -41,6 +42,7 @@ function genPath(elem, t, opt) {
     parameters: genParams(elem)
   };
   paths[pathName][elem.request.method.toLowerCase()] = path;
+  console.log(chalk.hex('#666')('Processing path ... '), chalk.hex('#00ff00')(`[${elem.request.method}]`), chalk.hex('#00d4ff')(`[${pathName}]`));
 }
 
 function recursive(elem, t, opt) {
@@ -53,13 +55,19 @@ function recursive(elem, t, opt) {
 }
 
 function getEnvironmentData(envPath) {
-  return envPath ? JSON.parse(fs.readFileSync(envPath, 'utf8')).values.filter(v => !!v.enabled) : null;
+  return envPath ? readEnvFile(envPath) : null;
+}
+
+function readEnvFile(envPath) {
+  console.info(); console.log(chalk.hex('#00d4ff')('Reading Environment File'), chalk.hex('#666')(`[${envPath}]`));
+  return JSON.parse(fs.readFileSync(envPath, 'utf8')).values.filter(v => !!v.enabled);
 }
 
 async function docrester(opt) {
   if (opt.c) return console.info('Jesús R Peinado https://github.com/jesusr');
   if (opt.v) return console.info(require('./package.json').version);
   const env = getEnvironmentData(opt.e);
+  console.info(); console.log(chalk.hex('#00d4ff')('Reading Collection File'), chalk.hex('#666')(`[${opt._[0]}]`));
   let file = fs.readFileSync(opt._[0], 'utf8');
   if (env) env.map(e => (file = file.replace(new RegExp(`{{${e.key}}}`, 'g'), e.value)));
   file = JSON.parse(file);
@@ -78,7 +86,7 @@ async function docrester(opt) {
     swagger: '2.0', consumes, produces, tags, paths
   };
   fs.writeFileSync(`${__dirname}/${opt.o}`, JSON.stringify(main, null, 4), { encoding: 'utf8' });
-  console.info(`Swagger JSON stored at ${__dirname}/${opt.o}`);
+  console.info(); console.info(chalk.hex('#00d4ff').underline(`Swagger JSON stored at ${__dirname}/${opt.o}`));
 }
 
 function parseArguments() {
