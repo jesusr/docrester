@@ -96,6 +96,7 @@ function parseArguments() {
     .option('output', { description: 'path for the output file', alias: 'o', type: 'string' })
     .option('domain', { description: 'url for host domain ', alias: 'd', type: 'string' })
     .option('base', { description: 'base path ', alias: 'b', type: 'string' })
+    .option('env', { description: 'environment variables file path', alias: 'e', type: 'string' })
     .option('version', { description: 'version of the document', alias: 'vv', type: 'boolean' })
     .option('contact', { description: 'contact info', alias: 'c', type: 'boolean' })
     .default('o', 'swagger.json').demandCommand(1)
